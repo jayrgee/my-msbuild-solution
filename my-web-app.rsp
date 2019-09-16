@@ -1,0 +1,4 @@
+/nologo
+/property:blah="blah value"
+/property:DefaultConnection="default connection value"
+/property:MyNodes="<MyNode foo='bar' /><MyNode foo='bas' /><MyNode foo='bat' />"

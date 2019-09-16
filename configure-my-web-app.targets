@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="ValidateCommandLine;ReadWebConfig;UpdateMyNodes" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <AppName>my-web-app</AppName>
+    <WebConfig>$(MSBuildProjectDirectory)\$(AppName)\Web.config</WebConfig>
+    <Namespaces>&lt;Namespace Prefix='msb' Uri='http://schemas.microsoft.com/developer/msbuild/2003'/&gt;</Namespaces>
+    <!--<MyNodes>&lt;MyNode foo='bar'/&gt;&lt;MyNode foo='bas'/&gt;&lt;MyNode foo='bat'/&gt;</MyNodes>-->
+  </PropertyGroup>
+
+  <Target Name="ValidateCommandLine">
+    <Message Text="Executing ValidateCommandLine" />
+    <Error
+      Text="The BLAH property must be set on the command line."
+      Condition="'$(BLAH)' == ''" />
+  </Target>
+  
+  <Target Name="Foo">
+    <Message Text="Executing Foo" />
+    <Message Text="$(WebConfig)" />
+  </Target>
+
+  <Target Name="EnsureWebConfigExists" BeforeTargets="Foo">
+    <Message Text="Executing EnsureWebConfigExists" />
+    <PropertyGroup>
+      <ErrorText>Web.config could not be found. The missing file is {0}.</ErrorText>
+    </PropertyGroup>
+    <Error
+      Condition="!Exists($(WebConfig))"
+      Text="$([System.String]::Format('$(ErrorText)', $(WebConfig)))" />
+  </Target>
+
+  <Target Name="ReadWebConfig">
+    <Message Text="Reading Web Config" />
+    <XmlPeek Namespaces="$(Namespaces)"
+        XmlInputPath="$(WebConfig)"
+        Query="//appSettings/add[@key='foo']/@value">
+      <Output TaskParameter="Result" ItemName="Peeked" />
+    </XmlPeek>
+    <Message Text="@(Peeked)" />
+  </Target>
+
+  <Target Name="UpdateAppSettings"  Condition=" '$(blah)' != '' ">
+    <XmlPoke Namespaces="$(Namespaces)"
+        XmlInputPath="$(WebConfig)"
+        Query="//appSettings/add[@key='foo']/@value"
+        Value="$(blah)" />
+  </Target>
+
+  <Target Name="UpdateMyNodes" Condition=" '$(MyNodes)' != '' " DependsOnTargets="EnsureWebConfigExists">
+    <Message Text="Updating My Settings" />
+    <XmlPoke Namespaces="$(Namespaces)"
+        XmlInputPath="$(WebConfig)"
+        Query="//mySettings/myNodes[@name='beta']"
+        Value="$(MyNodes)" />
+  </Target>
+
+  <Target Name="ReadWebConfig1">
+    <XmlPeek Namespaces="$(Namespaces)"
+        XmlInputPath="$(WebConfig)"
+        Query="//connectionStrings/add[@name='DefaultConnection']/@connectionString">
+      <Output TaskParameter="Result" ItemName="Peeked" />
+    </XmlPeek>
+    <Message Text="@(Peeked)" />
+  </Target>
+
+  <Target Name="TestXmlPeek">
+    <XmlPeek Namespaces="&lt;Namespace Prefix='msb' Uri='http://schemas.microsoft.com/developer/msbuild/2003'/&gt;"
+             XmlInputPath="$(MSBuildProjectFile)"
+             Query="/msb:Project/msb:Target[@Name='TestXmlPeek']/msb:Message">
+      <Output TaskParameter="Result" ItemName="Peeked" />
+    </XmlPeek>
+
+    <Message Text="@(Peeked)"/>
+  </Target>
+</Project>
